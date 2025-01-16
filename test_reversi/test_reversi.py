@@ -1,4 +1,4 @@
-from reversi import Reversi
+from reversi.reversi import Reversi
 import numpy as np
 
 game = Reversi()

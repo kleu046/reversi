@@ -1,5 +1,5 @@
 import numpy as np
-from .game_state import GameState
+from reversi.game_state import GameState
 
 class Reversi:
     def __init__(self, size: int = 8) -> None:

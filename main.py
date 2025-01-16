@@ -1,6 +1,6 @@
 import numpy as np
 from typing import Any
-from reversi import Reversi
+from reversi.reversi import Reversi
 
 
 def main():

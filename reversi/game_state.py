@@ -1,10 +1,14 @@
+from __future__ import annotations
 import numpy as np
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from reversi import Reversi
 
 class GameState:
-    def __init__(self, board: np.ndarray, p: float = 1, r: float = 0) -> None:
-        self.board = board
-        self.children = {}
+    def __init__(self, game: Reversi, p: float = 1, r: float = 0) -> None:
+        self.game = game
+        self.children: dict[tuple[int, int], GameState] = {}
         self.p = p
         self.r = r
 

@@ -1,20 +1,7 @@
-import numpy as np
-from typing import Any
-from reversi.reversi import Reversi
-
+from reversi import Reversi
 
 def main():
     game = Reversi()
-    
-    # game.board = np.array([
-    #     [-1, -1, -1, -1, -1, -1, -1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [-1,  1,  1,  1,  1,  1,  1, -1],
-    #     [ 0,  0,  0,  0,  0,  0,  0,  0]])
 
     consecutive_no_move = 0
     while consecutive_no_move < 2:

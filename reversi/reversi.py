@@ -57,7 +57,7 @@ class Reversi:
         for move in valid_moves:
             self_prime = self.copy()
             self_prime.force_next_turn(*move)
-            mod = GameState.build_model(self_prime, GameState(self_prime.board), 4, self.player)
+            mod = GameState.build_model(self_prime, GameState(self_prime), 4, self.player)
             V = mod.V()
             if V > best_V:
                 best_move = [move]
@@ -104,7 +104,7 @@ class Reversi:
         3.	At Least One Capture: The move must result in at least one opponent’s disc being flipped. If no such move is possible, the player must pass their turn.
         """
         if not self.is_within_board(x, y) or not self.is_empty(x, y):  # valid x and valid y must be the first checks or self[x, y] could return error
-            return
+            return None
 
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
@@ -118,7 +118,7 @@ class Reversi:
                     if len(to_flip) > 0:
                         return to_flip
 
-        return
+        return None
 
     def is_within_board(self, x, y) -> bool:
         return 0 <= x < self.size and 0 <= y < self.size

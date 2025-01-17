@@ -1,7 +1,7 @@
 from reversi import Reversi
 
 def main():
-    game = Reversi()
+    game = Reversi(level=5)
 
     consecutive_no_move = 0
     while consecutive_no_move < 2:

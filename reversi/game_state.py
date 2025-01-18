@@ -24,6 +24,7 @@ class GameState:
         self.children: dict[tuple[int, int], GameState] = {}
         self.p = p
         self.r = r
+        self.cache = {}
 
     def __str__(self):
         return f"p: {self.p}, r:{self.r}, next possible moves: {self.children.keys()}"
@@ -37,6 +38,9 @@ class GameState:
             state -- a GameState object of the resulting state after making the "move"
         """
         self.children[move] = state
+
+
+        
 
     def V(self):
         """
@@ -52,8 +56,9 @@ class GameState:
         for m in self.children:
             child = self.children[m]
             total += child.V() * child.p
-            
+
         return total
+
 
 
     def print_states(self, tab = 0):
@@ -87,10 +92,12 @@ class GameState:
         valid_moves = game.get_valid_moves()
         if len(valid_moves) == 0:
             return states
+            
         p = 1 / len(valid_moves)
     
         def process_move(m):
-            r = len(game.find_flip(*m)) * game.player
+            # r = len(game.find_flip(*m)) * game.player
+            r = len(valid_moves[m]) * game.player
             
             ## forcing a high reward at corners?
             ## does this work?

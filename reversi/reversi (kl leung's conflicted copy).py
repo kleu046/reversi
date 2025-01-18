@@ -1,19 +1,9 @@
 import numpy as np
-import random
 from reversi.game_state import GameState
 
 class Reversi:
-    def __init__(self, size: int = 8, level=3) -> None:
-        """reversi game object
-
-        Keyword Arguments:
-            size -- baord size - traditioally = 8 x 8 (default: {8})
-            level -- game level - directly related to how many step the Ai tree search look ahead (default: {3})
-        """
-        if level < 3 or level > 5:
-            raise ValueError("level must be between 3 and 5")
+    def __init__(self, size: int = 8) -> None:
         self.size = size
-        self.level = level
         self.board = np.zeros((size, size), dtype = np.int8)
         self.board[size // 2 - 1, size // 2 - 1] = self.board[size // 2, size // 2] = 1
         self.board[size // 2, size // 2 - 1] = self.board[size // 2 - 1, size // 2] = -1
@@ -60,26 +50,22 @@ class Reversi:
         s += ' ====' + '======='.join(["=" for i in range(self.size)]) + '====\n'
         return s
 
-
-    def find_best_ai_move(self, valid_moves, state = None):
+    def find_best_ai_move(self, valid_moves):
         best_move = []
         best_V = -999
 
         for move in valid_moves:
             self_prime = self.copy()
             self_prime.force_next_turn(*move)
-            
-            mod = GameState.build_model(self_prime, GameState(self_prime), self.level)
+            mod = GameState.build_model(self_prime, GameState(self_prime), 4, self.player)
             V = mod.V()
-            print(move, V)
-
             if V > best_V:
                 best_move = [move]
                 best_V = V
             elif V == best_V:
                 best_move.append(move)
                 best_V = V
-        return random.choice(best_move) if len(best_move) > 0 else best_move[0]
+        return best_move
     
     def prompt_player_move(self, valid_moves) -> tuple[int, int]:
         while True:
@@ -100,8 +86,8 @@ class Reversi:
         else:
             if self.player == 1:
                 best_move = self.find_best_ai_move(valid_moves)
-                print(f"Player O row: {best_move[0]}, {best_move[1]}")
-                self.force_next_turn(*best_move)
+                print(f"Player O row: {best_move[0][0]}, {best_move[0][1]}")
+                self.force_next_turn(*best_move[0])
                 return 0
             else:
                 x, y = self.prompt_player_move(valid_moves)
@@ -117,7 +103,7 @@ class Reversi:
         2.	Sandwich Formation: The placed disc must create a line (horizontal, vertical, or diagonal) where one or more opponent’s discs are “sandwiched” between the new disc and another of the player’s discs already on the board.
         3.	At Least One Capture: The move must result in at least one opponent’s disc being flipped. If no such move is possible, the player must pass their turn.
         """
-        if not (0 <= x < self.size) and not (0 <= x < self.size) or not self.is_empty(x, y):  # valid x and valid y must be the first checks or self[x, y] could return error
+        if not self.is_within_board(x, y) or not self.is_empty(x, y):  # valid x and valid y must be the first checks or self[x, y] could return error
             return None
 
         for dx in [-1, 0, 1]:
@@ -125,7 +111,7 @@ class Reversi:
                 if dx == 0 and dy == 0:
                     continue
                 nx, ny = x + dx, y + dy
-                if 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == -self.player:
+                if self.is_within_board(nx, ny) and self[nx, ny] == -self.player:
                     # print(f"({x}, {y}) is within the board and is next to an opponent piece")
                     # -player == opponent # check if the neighbouring position is a opponent
                     to_flip = self.find_flip(x, y) # has a valid flip
@@ -134,83 +120,32 @@ class Reversi:
 
         return None
 
+    def is_within_board(self, x, y) -> bool:
+        return 0 <= x < self.size and 0 <= y < self.size
+
 
     def is_empty(self, x, y) -> bool:
         return self[x, y] == 0
 
+
     def find_flip(self, x, y) -> list[tuple[int, int]]:
-        if self.board[x, y] != 0:
-            raise ValueError(f"({x}, {y}) is not empty")
-        
-        size = self.size
-        player = self.player
-        opponent = -self.player
-        
         directions = [(0, 1), (1, 0), (0, -1), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
         to_flip_all_direction = []
         for dx, dy in directions:
             nx, ny = x + dx, y + dy
             to_flip_current_direction = []
-                        
-            while 0 <= nx < size and 0 <= ny < size and self[nx, ny] == opponent: # -self.player == opponent
+            
+            if not self.is_within_board(nx, ny) or self[nx, ny] != -self.player:
+                continue
+            
+            while self.is_within_board(nx, ny) and self[nx, ny] == -self.player: # -self.player == opponent
                 to_flip_current_direction.append((nx, ny))
                 nx += dx
                 ny += dy
             # after the last opponent piece, it should be a player piece
-            if 0 <= nx < size and 0 <= ny < size and self[nx, ny] == player:
+            if 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == self.player:
                 to_flip_all_direction.extend(to_flip_current_direction)
         return to_flip_all_direction
-
-
-    '''
-    # Alternative fully vectorized version using numpy operations
-    def find_flip_(self, x, y):
-        if self.board[x, y] != 0:
-            return []
-            
-        directions = np.array([(0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)])
-        flips = []
-        opponent = -self.player
-        
-        # Create position arrays for all 8 directions, up to 8 steps each
-        steps = np.arange(1, 8)[:, None, None]  # Shape: (7, 1, 1)
-        dirs = directions[None, :, :]  # Shape: (1, 8, 2)
-        
-        # Calculate all positions to check at once
-        # This creates array of shape (7, 8, 2) containing all positions to check
-        positions = np.array([x, y]) + steps * dirs
-        
-        # Mask for positions within bounds
-        valid_mask = (positions[..., 0] >= 0) & (positions[..., 0] < 8) & \
-                    (positions[..., 1] >= 0) & (positions[..., 1] < 8)
-        
-        # For each direction
-        for d in range(8):
-            temp_flips = []
-            dir_positions = positions[:, d][valid_mask[:, d]]
-            
-            if len(dir_positions) == 0:
-                continue
-                
-            # Get board values for all positions in this direction
-            values = self.board[dir_positions[:, 0], dir_positions[:, 1]]
-            
-            # Find consecutive opponent pieces followed by own piece
-            opponent_mask = values == opponent
-            own_mask = values == self.player
-            
-            # Find first occurrence of own piece
-            own_indices = np.where(own_mask)[0]
-            if len(own_indices) > 0:
-                first_own = own_indices[0]
-                # Check if we have continuous opponent pieces before it
-                if np.all(opponent_mask[:first_own]):
-                    # Add all positions up to first_own to flips
-                    for pos in dir_positions[:first_own]:
-                        flips.append(tuple(pos))
-                        
-        return flips
-    '''
 
 
     def flip(self, to_flip) -> None:
@@ -243,9 +178,68 @@ class Reversi:
                     if dx == 0 and dy == 0:
                         continue
                     nx, ny = x + dx, y + dy
-                    if (nx, ny) not in checked and 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == 0:
+                    if (nx, ny) not in checked and self.is_within_board(nx, ny) and self[nx, ny] == 0:
                         to_flip = self.find_flip(nx, ny)
                         if len(to_flip) > 0:
                             valid_moves[(nx, ny)] = to_flip
                         checked.add((nx, ny))
         return valid_moves
+
+
+
+
+# class State:
+#     def __init__(self, game: Reversi, p: float = 1, r: float = 0) -> None:
+#         self.game = game
+#         self.children = {}
+#         self.p = p
+#         self.r = r
+
+#     def __str__(self):
+#         return f"p: {self.p}, r:{self.r}, next possible moves: {self.children.keys()}"
+
+#     def add(self, move, state):
+#         self.children[move] = state
+
+#     def V(self):
+#         if not self.children:
+#             return self.r
+            
+#         # R(s) + V(s') + V(s")
+#         total = self.r
+#         for m in self.children:
+#             child = self.children[m]
+#             child_value = child.V() * child.p
+#             total += child_value
+            
+#             for n in child.children:
+#                 grandchild = child.children[n]
+#                 total += grandchild.V() * grandchild.p * child.p
+                
+#         return total
+
+
+#     def print_states(self, tab = 0):
+#         if len(self.children) == 0:
+#             return
+#         for move in self.children:
+#             print(f"{'    ' * tab} {move}")
+#             self.children[move].print_states(tab + 1)
+
+
+#     @classmethod
+#     def build_model(cls, game, states, n_turns, player):
+#         if n_turns == 0:
+#             return states
+#         valid_moves = game.get_valid_moves()
+#         if len(valid_moves) == 0:
+#             return states
+#         p = 1 / len(valid_moves)
+#         for m in valid_moves:
+#             r = len(game.find_flip(*m)) * (1 if game.player == player else -1)
+#             game_prime = game.copy()
+#             game_prime.force_next_turn(*m)
+#             child = State(game_prime, p, r)
+#             states.add(m, child)
+#             cls.build_model(game_prime, child, n_turns - 1, player)
+#         return states

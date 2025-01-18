@@ -162,55 +162,6 @@ class Reversi:
         return to_flip_all_direction
 
 
-    '''
-    # Alternative fully vectorized version using numpy operations
-    def find_flip_(self, x, y):
-        if self.board[x, y] != 0:
-            return []
-            
-        directions = np.array([(0,1), (1,1), (1,0), (1,-1), (0,-1), (-1,-1), (-1,0), (-1,1)])
-        flips = []
-        opponent = -self.player
-        
-        # Create position arrays for all 8 directions, up to 8 steps each
-        steps = np.arange(1, 8)[:, None, None]  # Shape: (7, 1, 1)
-        dirs = directions[None, :, :]  # Shape: (1, 8, 2)
-        
-        # Calculate all positions to check at once
-        # This creates array of shape (7, 8, 2) containing all positions to check
-        positions = np.array([x, y]) + steps * dirs
-        
-        # Mask for positions within bounds
-        valid_mask = (positions[..., 0] >= 0) & (positions[..., 0] < 8) & \
-                    (positions[..., 1] >= 0) & (positions[..., 1] < 8)
-        
-        # For each direction
-        for d in range(8):
-            temp_flips = []
-            dir_positions = positions[:, d][valid_mask[:, d]]
-            
-            if len(dir_positions) == 0:
-                continue
-                
-            # Get board values for all positions in this direction
-            values = self.board[dir_positions[:, 0], dir_positions[:, 1]]
-            
-            # Find consecutive opponent pieces followed by own piece
-            opponent_mask = values == opponent
-            own_mask = values == self.player
-            
-            # Find first occurrence of own piece
-            own_indices = np.where(own_mask)[0]
-            if len(own_indices) > 0:
-                first_own = own_indices[0]
-                # Check if we have continuous opponent pieces before it
-                if np.all(opponent_mask[:first_own]):
-                    # Add all positions up to first_own to flips
-                    for pos in dir_positions[:first_own]:
-                        flips.append(tuple(pos))
-                        
-        return flips
-    '''
 
 
     def flip(self, to_flip) -> None:

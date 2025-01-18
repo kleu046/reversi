@@ -18,14 +18,7 @@ class Reversi:
         self.board[size // 2 - 1, size // 2 - 1] = self.board[size // 2, size // 2] = 1
         self.board[size // 2, size // 2 - 1] = self.board[size // 2 - 1, size // 2] = -1
         self.player = -1 # traditionally black go first
-        
-    def copy(self):
-        new_game = Reversi()
-        new_game.size = self.size
-        new_game.board = self.board.copy()
-        new_game.player = self.player
-        return new_game
-    
+            
     def force_next_turn(self, x: int | None = None, y: int | None = None, player: int | None = None):
         if not player: # unless specified, player is the current player
             player = self.player
@@ -36,30 +29,6 @@ class Reversi:
                 self.flip(to_flip)
         self.player = -self.player
         return
-
-    def __getitem__(self, key):
-        return self.board[key]
-    
-    def __str__(self):
-        return self.pretty_board()       
-    
-    def __setitem__(self, key, value):
-        self.board[key] = value
-        
-    def pretty_board(self) -> str:
-        s = ' ====' + '======='.join([str(i) for i in range(self.size)]) + '====\n'
-
-        for r, row in enumerate(self.board):
-            for i, c in enumerate(row):
-                if i == 0:
-                    s += str(r)
-                s += '|   ' + (('O' if c == 1 else 'X') if c != 0 else ' ') + '   '
-            s += '|\n'
-            if 0 <= r < self.size - 1:
-                s += ' ----' + '-------'.join(["-" for i in range(self.size)]) + '----\n'
-        s += ' ====' + '======='.join(["=" for i in range(self.size)]) + '====\n'
-        return s
-
 
     def find_best_ai_move(self, valid_moves, state = None):
         best_move = []
@@ -110,14 +79,13 @@ class Reversi:
                 self.player = -self.player
                 return 0
 
-
     def is_valid_move(self, x: int, y: int) -> list[tuple[int, int]] | None:
         """
         1.	Opposing Disc Line: The disc must be placed adjacent to at least one opponent’s disc.
         2.	Sandwich Formation: The placed disc must create a line (horizontal, vertical, or diagonal) where one or more opponent’s discs are “sandwiched” between the new disc and another of the player’s discs already on the board.
         3.	At Least One Capture: The move must result in at least one opponent’s disc being flipped. If no such move is possible, the player must pass their turn.
         """
-        if not (0 <= x < self.size) and not (0 <= x < self.size) or not self.is_empty(x, y):  # valid x and valid y must be the first checks or self[x, y] could return error
+        if not (0 <= x < self.size) and not (0 <= x < self.size) or self[x, y] != 0:  # valid x and valid y must be the first checks or self[x, y] could return error
             return None
 
         for dx in [-1, 0, 1]:
@@ -134,9 +102,35 @@ class Reversi:
 
         return None
 
+    def copy(self):
+        new_game = Reversi()
+        new_game.size = self.size
+        new_game.board = self.board.copy()
+        new_game.player = self.player
+        return new_game
+        
+    def pretty_board(self) -> str:
+        s = ' ====' + '======='.join([str(i) for i in range(self.size)]) + '====\n'
 
-    def is_empty(self, x, y) -> bool:
-        return self[x, y] == 0
+        for r, row in enumerate(self.board):
+            for i, c in enumerate(row):
+                if i == 0:
+                    s += str(r)
+                s += '|   ' + (('O' if c == 1 else 'X') if c != 0 else ' ') + '   '
+            s += '|\n'
+            if 0 <= r < self.size - 1:
+                s += ' ----' + '-------'.join(["-" for i in range(self.size)]) + '----\n'
+        s += ' ====' + '======='.join(["=" for i in range(self.size)]) + '====\n'
+        return s
+
+    def __getitem__(self, key):
+        return self.board[key]
+    
+    def __str__(self):
+        return self.pretty_board()       
+    
+    def __setitem__(self, key, value):
+        self.board[key] = value
 
     def find_flip(self, x, y) -> list[tuple[int, int]]:
         if self.board[x, y] != 0:
@@ -160,9 +154,6 @@ class Reversi:
             if 0 <= nx < size and 0 <= ny < size and self[nx, ny] == player:
                 to_flip_all_direction.extend(to_flip_current_direction)
         return to_flip_all_direction
-
-
-
 
     def flip(self, to_flip) -> None:
         """

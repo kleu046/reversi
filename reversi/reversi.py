@@ -166,7 +166,7 @@ class Reversi:
             self[x, y] = self.player
 
 
-    def get_valid_moves(self) -> dict[tuple[int, int], list[tuple[int, int]]]:
+    def get_valid_moves(self):       
         """
         Check if there are any valid moves for the current player
         Keep track of checked positions
@@ -175,19 +175,57 @@ class Reversi:
         Returns:
             valid_moves as dict of valid move xy coordiates and positions that can be flipped
         """
-        valid_moves = {}
-        pieces = np.where(self.board != 0)
-        checked = set()
+        is_empty = (self.board == 0)
+        is_opponent = (self.board == -self.player)
+        padded_board = np.pad(is_opponent, pad_width=1, mode='constant')
+
+        # neighbor check
+        neighbors = np.zeros_like(self.board, dtype=bool)
         
-        for x, y in zip(pieces[0], pieces[1]):
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    if dx == 0 and dy == 0:
-                        continue
-                    nx, ny = x + dx, y + dy
-                    if (nx, ny) not in checked and 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == 0:
-                        to_flip = self.find_flip(nx, ny)
-                        if len(to_flip) > 0:
-                            valid_moves[(nx, ny)] = to_flip
-                        checked.add((nx, ny))
+        for dx, dy in [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]:
+            neighbors |= padded_board[1+dx:self.size+1+dx, 1+dy:self.size+1+dy]
+        
+        potential_moves = is_empty & neighbors
+        valid_moves = {}
+        
+        # is a empty position next to a opponent piece?
+        for i in range(self.size):
+            for j in range(self.size):
+                if is_empty[i, j] == 1 and potential_moves[i, j]:
+                    # does a flip exist
+                    to_flip_in_all_directions = self.find_flip(i, j)
+                    if len(to_flip_in_all_directions) > 0:
+                        valid_moves[(i, j)] = to_flip_in_all_directions
+        return valid_moves
+    
+    def get_valid_moves_(self):       
+        """
+        Check if there are any valid moves for the current player
+        Keep track of checked positions
+        Only check positions where self[x, y] == 0 - the only possible moves
+        
+        Returns:
+            valid_moves as dict of valid move xy coordiates and positions that can be flipped
+        """
+        is_empty = (self.board == 0)
+        is_opponent = (self.board == -self.player)
+        padded_board = np.pad(is_opponent, pad_width=1, mode='constant')
+
+        # neighbor check
+        neighbors = np.zeros_like(self.board, dtype=bool)
+        
+        for dx, dy in [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]:
+            neighbors |= padded_board[1+dx:self.size+1+dx, 1+dy:self.size+1+dy]
+        
+        potential_moves = is_empty & neighbors
+        valid_moves = {}
+        
+        # is a empty position next to a opponent piece?
+        for i in range(self.size):
+            for j in range(self.size):
+                if is_empty[i, j] == 1 and potential_moves[i, j]:
+                    # does a flip exist
+                    to_flip_in_all_directions = self.find_flip(i, j)
+                    if len(to_flip_in_all_directions) > 0:
+                        valid_moves[(i, j)] = to_flip_in_all_directions
         return valid_moves

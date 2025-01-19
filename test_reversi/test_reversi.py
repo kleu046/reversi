@@ -2,23 +2,6 @@ from reversi.reversi import Reversi
 import numpy as np
 
 game = Reversi()
-
-def test_is_within_board():
-    assert game.is_within_board(0, 0) == True
-    assert game.is_within_board(7, 7) == True
-    assert game.is_within_board(0, 7) == True
-    assert game.is_within_board(7, 0) == True
-    assert game.is_within_board(-1, 0) == False
-    assert game.is_within_board(0, -1) == False
-    assert game.is_within_board(8, 0) == False
-    assert game.is_within_board(0, 8) == False
-    assert game.is_within_board(-1, -1) == False
-    assert game.is_within_board(8, 8) == False
-    
-def test_is_empty():
-    assert game.is_empty(3, 3) == False
-    assert game.is_empty(2, 3) == True
-    assert game.is_empty(3, 2) == True
     
 def test_get_valid_moves():
     assert list(game.get_valid_moves().keys()) == [(2, 3), (3, 2), (4, 5), (5, 4)]

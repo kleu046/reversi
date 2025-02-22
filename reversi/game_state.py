@@ -120,35 +120,5 @@ class GameState:
         return states
 
 
-    ## implemented above using Threading
-    # @classmethod
-    # def build_model(cls, game, states, n_turns, player) -> GameState:
-    #     """build a tree of "n_turns" number of turns starting from the current game state
-
-    #     Arguments:
-    #         game -- _description_
-    #         states -- _description_
-    #         n_turns -- _description_
-    #         player -- _description_
-
-    #     Returns:
-    #         _description_
-    #     """
-    #     if n_turns == 0:
-    #         return states
-    #     valid_moves = game.get_valid_moves()
-    #     if len(valid_moves) == 0:
-    #         return states
-    #     p = 1 / len(valid_moves)
-    #     for m in valid_moves:
-    #         r = len(game.find_flip(*m)) * (1 if game.player == player else -1)
-    #         game_prime = game.copy()
-    #         game_prime.force_next_turn(*m)
-    #         child = GameState(game_prime, p, r)
-    #         states.add(m, child)
-    #         cls.build_model(game_prime, child, n_turns - 1, player)
-    #     return states
-    
-
 if __name__ == '__main__':
     ...

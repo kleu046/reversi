@@ -1,5 +1,6 @@
 import numpy as np
 import random
+
 from reversi.game_state import GameState
 
 class Reversi:
@@ -79,28 +80,8 @@ class Reversi:
                 self.player = -self.player
                 return 0
 
-    def is_valid_move(self, x: int, y: int) -> list[tuple[int, int]] | None:
-        """
-        1.	Opposing Disc Line: The disc must be placed adjacent to at least one opponent’s disc.
-        2.	Sandwich Formation: The placed disc must create a line (horizontal, vertical, or diagonal) where one or more opponent’s discs are “sandwiched” between the new disc and another of the player’s discs already on the board.
-        3.	At Least One Capture: The move must result in at least one opponent’s disc being flipped. If no such move is possible, the player must pass their turn.
-        """
-        if not (0 <= x < self.size) and not (0 <= x < self.size) or self[x, y] != 0:  # valid x and valid y must be the first checks or self[x, y] could return error
-            return None
-
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                if dx == 0 and dy == 0:
-                    continue
-                nx, ny = x + dx, y + dy
-                if 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == -self.player:
-                    # print(f"({x}, {y}) is within the board and is next to an opponent piece")
-                    # -player == opponent # check if the neighbouring position is a opponent
-                    to_flip = self.find_flip(x, y) # has a valid flip
-                    if len(to_flip) > 0:
-                        return to_flip
-
-        return None
+    
+    
 
     def copy(self):
         new_game = Reversi()
@@ -132,6 +113,7 @@ class Reversi:
     def __setitem__(self, key, value):
         self.board[key] = value
 
+
     def find_flip(self, x, y) -> list[tuple[int, int]]:
         if self.board[x, y] != 0:
             raise ValueError(f"({x}, {y}) is not empty")
@@ -154,6 +136,8 @@ class Reversi:
             if 0 <= nx < size and 0 <= ny < size and self[nx, ny] == player:
                 to_flip_all_direction.extend(to_flip_current_direction)
         return to_flip_all_direction
+
+
 
     def flip(self, to_flip) -> None:
         """
@@ -197,35 +181,28 @@ class Reversi:
                     if len(to_flip_in_all_directions) > 0:
                         valid_moves[(i, j)] = to_flip_in_all_directions
         return valid_moves
-    
-    def get_valid_moves_(self):       
-        """
-        Check if there are any valid moves for the current player
-        Keep track of checked positions
-        Only check positions where self[x, y] == 0 - the only possible moves
-        
-        Returns:
-            valid_moves as dict of valid move xy coordiates and positions that can be flipped
-        """
-        is_empty = (self.board == 0)
-        is_opponent = (self.board == -self.player)
-        padded_board = np.pad(is_opponent, pad_width=1, mode='constant')
 
-        # neighbor check
-        neighbors = np.zeros_like(self.board, dtype=bool)
-        
-        for dx, dy in [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]:
-            neighbors |= padded_board[1+dx:self.size+1+dx, 1+dy:self.size+1+dy]
-        
-        potential_moves = is_empty & neighbors
-        valid_moves = {}
-        
-        # is a empty position next to a opponent piece?
-        for i in range(self.size):
-            for j in range(self.size):
-                if is_empty[i, j] == 1 and potential_moves[i, j]:
-                    # does a flip exist
-                    to_flip_in_all_directions = self.find_flip(i, j)
-                    if len(to_flip_in_all_directions) > 0:
-                        valid_moves[(i, j)] = to_flip_in_all_directions
-        return valid_moves
+
+    def is_valid_move(self, x: int, y: int) -> list[tuple[int, int]] | None:
+        """
+        1.	Opposing Disc Line: The disc must be placed adjacent to at least one opponent’s disc.
+        2.	Sandwich Formation: The placed disc must create a line (horizontal, vertical, or diagonal) where one or more opponent’s discs are “sandwiched” between the new disc and another of the player’s discs already on the board.
+        3.	At Least One Capture: The move must result in at least one opponent’s disc being flipped. If no such move is possible, the player must pass their turn.
+        """
+        if not (0 <= x < self.size) and not (0 <= x < self.size) or self[x, y] != 0:  # valid x and valid y must be the first checks or self[x, y] could return error
+            return None
+
+        for dx in [-1, 0, 1]:
+            for dy in [-1, 0, 1]:
+                if dx == 0 and dy == 0:
+                    continue
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < self.size and 0 <= ny < self.size and self[nx, ny] == -self.player:
+                    # print(f"({x}, {y}) is within the board and is next to an opponent piece")
+                    # -player == opponent # check if the neighbouring position is a opponent
+                    to_flip = self.find_flip(x, y) # has a valid flip
+                    if len(to_flip) > 0:
+                        return to_flip
+
+        return None
+    
